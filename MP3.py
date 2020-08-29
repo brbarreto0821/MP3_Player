@@ -41,8 +41,7 @@ class MusicPlayer:
         if not self.playing_state:
             mixer.music.pause()
             self.playing_state = True
-        
-    
+         
     # Stops the music from playing        
     def stop(self):
         mixer.music.stop()
@@ -54,14 +53,19 @@ class MusicPlayer:
     
     # Plays a random song from the Music directory
     def shuffle(self):
-        root = '.\Music'
-        for path, subdirs, files in os.walk(root):
-            for name in files:
-                if name[0:] != '.mp3':
-                    continue
-                self.list_of_songs.append(os.path.join(path, name))
+        self.list_song()
         random_song = random.choice(self.list_of_songs)
-        mixer.music.play(random_song)
+        self.music_file = random_song
+        if self.music_file:
+            mixer.init()
+            mixer.music.load(self.music_file)
+            mixer.music.play()
+            
+    def list_song(self):
+        mypath = os.getcwd() + '/Music'
+        for path, subdir, files in os.walk(mypath):
+            for name in files:
+                self.list_of_songs.append(os.path.join(path, name))       
         
 # Starts the application        
 root = Tk()
