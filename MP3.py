@@ -25,22 +25,23 @@ class MusicPlayer:
     # This method loads the music file
     def load(self):
         self.music_file = filedialog.askopenfilename()
-    
-    # This will play the music
-    def play(self):
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
             mixer.music.play()
+    
+    # This will play the music
+    def play(self):
+        if self.playing_state:
+            mixer.music.unpause()
+            self.playing_state = False        
 
     # Pauses the music
     def pause(self):
         if not self.playing_state:
             mixer.music.pause()
             self.playing_state = True
-        else:
-            mixer.music.unpause()
-            self.playing_state = False
+        
     
     # Stops the music from playing        
     def stop(self):
