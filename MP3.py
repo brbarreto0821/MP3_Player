@@ -14,13 +14,20 @@ class MusicPlayer:
         Pause = Button(window, text='Pause', width=10, font=('Times', 10), command=self.pause)
         Stop = Button(window, text='Stop', width=10, font=('Times', 10), command=self.stop)
         Shuffle = Button(window, text='Shuffle', width=10, font=('Times', 10), command=self.shuffle)
-        Volume = Scale(window, label='Volume', orient='horizontal', command=self.vol)
+        Volume = Scale(window, from_=0, to=1, label='Volume', orient='horizontal', resolution=.1, command=self.vol)
         Load.place(x=10, y=20); Play.place(x=120,y=20); Pause.place(x=230, y=20); Stop.place(x=60, y=60); 
         Shuffle.place(x=175, y=60); Volume.place(x=10, y=120)
         self.music_file = False
         self.volume_slider = Volume
         self.list_of_songs = []
         self.playing_state = False
+        
+    # Appends the music files to the attribute list_of_songs
+    def list_song(self):
+        mypath = os.getcwd() + '/Music'
+        for path, subdir, files in os.walk(mypath):
+            for name in files:
+                self.list_of_songs.append(os.path.join(path, name)) 
 
     # This method loads the music file
     def load(self):
@@ -55,18 +62,19 @@ class MusicPlayer:
     def shuffle(self):
         self.list_song()
         random_song = random.choice(self.list_of_songs)
+        r = False
+        while not r:
+            if self.music_file == random_song:    # Stops shuffling to the same song 
+                r = False
+                random_song = random.choice(self.list_of_songs)
+            else:
+                r = True
         self.music_file = random_song
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
             mixer.music.play()
-            
-    def list_song(self):
-        mypath = os.getcwd() + '/Music'
-        for path, subdir, files in os.walk(mypath):
-            for name in files:
-                self.list_of_songs.append(os.path.join(path, name))       
-        
+                   
 # Starts the application        
 root = Tk()
 player = MusicPlayer(root)
