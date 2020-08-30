@@ -10,15 +10,17 @@ class MusicPlayer:
     def __init__(self, window):
         window.geometry('325x200'); window.title("Brian's Player"); window.resizable(0,0)
         Load = Button(window, text='Load', width=10, font=('Times', 10), command=self.load)
-        Play = Button(window, text='Play', width=10, font=('Times', 10), command=self.play)
-        Pause = Button(window, text='Pause', width=10, font=('Times', 10), command=self.pause)
-        Stop = Button(window, text='Stop', width=10, font=('Times', 10), command=self.stop)
-        Shuffle = Button(window, text='Shuffle', width=10, font=('Times', 10), command=self.shuffle)
+        Play = Button(window, text='Play', width=5, font=('Times', 10), command=self.play)
+        Pause = Button(window, text='Pause', width=5, font=('Times', 10), command=self.pause)
+        Stop = Button(window, text='Stop', width=5, font=('Times', 10), command=self.stop)
+        Shuffle = Button(window, text='Shuffle', width=5, font=('Times', 10), command=self.shuffle)
         Volume = Scale(window, from_=0, to=1, label='Volume', orient='horizontal', resolution=.1, command=self.vol)
-        Load.place(x=10, y=20); Play.place(x=120,y=20); Pause.place(x=230, y=20); Stop.place(x=60, y=60); 
-        Shuffle.place(x=175, y=60); Volume.place(x=10, y=120)
+        Song_Title = Listbox(window, bg="black", fg="blue", width=30, height=2)
+        Load.place(x=10, y=20); Play.place(x=120,y=80); Pause.place(x=230, y=80); Stop.place(x=60, y=80); 
+        Shuffle.place(x=175, y=80); Volume.place(x=10, y=120); Song_Title.place(x=100, y=20)
         self.music_file = False
         self.volume_slider = Volume
+        self.song_title = Song_Title
         self.list_of_songs = []
         self.playing_state = False
         
@@ -32,6 +34,7 @@ class MusicPlayer:
     # This method loads the music file
     def load(self):
         self.music_file = filedialog.askopenfilename()
+        self.song_title.insert(END, self.music_file)
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
@@ -52,6 +55,9 @@ class MusicPlayer:
     # Stops the music from playing        
     def stop(self):
         mixer.music.stop()
+        song = self.music_file
+        item = self.song_title.get(END).index(song)
+        self.song_title.delete(item)
         
     # Volume slider added
     def vol(self, event):
