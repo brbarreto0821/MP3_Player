@@ -1,10 +1,13 @@
 from tkinter import *
 from tkinter import filedialog
 from pygame import mixer
+from mutagen.mp3 import MP3
 import os
 import random
 import codecs
 import re
+import time
+
 
 class MusicPlayer:
     # This creates the window with the buttons to load, play, pause, and stop music
@@ -20,18 +23,20 @@ class MusicPlayer:
         Shuffle = Button(window, text='🔀', width=5, font=('Times', 11), command=self.shuffle)
         Volume = Scale(window, from_=0, to=1, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
         Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
+        Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
         
         # Button Positions
         Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
         Shuffle.place(x=300, y=80); Volume.place(x=10, y=120); Song_Title.place(x=100, y=20); 
-        Next.place(x=100, y=80); Previous.place(x=50, y=80)
+        Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2)
         
         self.music_file = False
-        Volume.set(1)
         self.volume_slider = Volume
+        self.volume_slider.set(1)
         self.song_title = Song_Title
         self.list_of_songs = []
         self.playing_state = False
+        self.status_bar = Status_Bar
         
     # Appends the music files to the attribute list_of_songs
     def list_song(self):
@@ -48,10 +53,9 @@ class MusicPlayer:
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
-            
             self.clean_name()
-            
             mixer.music.play()
+            self.song_length()
     
     # This will play the music
     def play(self):
@@ -74,6 +78,8 @@ class MusicPlayer:
             self.song_title.delete(item)
         except:
             pass
+        self.music_file = False
+        self.status_bar.config(text="")
         
     # Volume slider added
     def vol(self, event):
@@ -88,10 +94,9 @@ class MusicPlayer:
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
-            
             self.clean_name()
-            
             mixer.music.play()
+            self.song_length()
     
     # Plays the next song            
     def next_song(self):
@@ -101,13 +106,9 @@ class MusicPlayer:
             next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one + 1]
             mixer.music.load(self.music_file)
-            
-            # strips off the file path and file extension on the title of song
-            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
-            
+            self.clean_name()
             mixer.music.play()
+            self.song_length()
     
     # Plays the previous song
     def previous_song(self):
@@ -117,14 +118,33 @@ class MusicPlayer:
             next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one - 1]
             mixer.music.load(self.music_file)
-            
-            # strips off the file path and file extension on the title of song
-            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
-            
+            self.clean_name()
             mixer.music.play()
-    
+            self.song_length()
+            
+    # Gets the length of the song
+    def song_length(self):
+        # This grabs the current time of the song
+        current_time = mixer.music.get_pos() / 1000
+        
+        # Converts the code above to time format
+        convert_current_time = time.strftime('%M:%S', time.gmtime(current_time))
+        
+        if self.music_file:
+            self.list_song()
+            song = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            song = self.list_of_songs[song]
+            # This loads song length with mutagen
+            song_mutagen = MP3(song)
+            # This gets the song length
+            song_length = song_mutagen.info.length
+            convert_song_length = time.strftime('%M:%S', time.gmtime(song_length))
+            # Outputs the time to the status bar
+            self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_length}  ')
+        
+            # Updates time
+            self.status_bar.after(1000, self.song_length)
+        
     # Removes the title off the Listbox        
     def remove_title(self):
         if self.music_file:
