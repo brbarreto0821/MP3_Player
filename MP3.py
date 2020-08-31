@@ -43,15 +43,13 @@ class MusicPlayer:
 
     # This method loads the music file
     def load(self):
+        self.remove_title()
         self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
             
-            # strips the file path and file extionsion off the title of song
-            self.music_file = self.music_file.replace("C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
+            self.clean_name()
             
             mixer.music.play()
     
@@ -84,37 +82,20 @@ class MusicPlayer:
     
     # Plays a random song from the Music directory
     def shuffle(self):
-        # Removes current song on the Listbox
-        if self.music_file:
-            try:
-                song = self.music_file
-                item = self.song_title.get(END).index(song)
-                self.song_title.delete(item)
-            except:
-                pass
+        self.remove_title()
         self.list_song()
         self.music_file = random.choice(self.list_of_songs)
         if self.music_file:
             mixer.init()
             mixer.music.load(self.music_file)
             
-            # strips off the file path and file extension on the title of song
-            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
+            self.clean_name()
             
             mixer.music.play()
     
     # Plays the next song            
     def next_song(self):
-        # Removes current song on the Listbox
-        if self.music_file:
-            try:
-                song = self.music_file
-                item = self.song_title.get(END).index(song)
-                self.song_title.delete(item)
-            except:
-                pass
+        self.remove_title()
         if self.music_file:
             self.list_song()
             next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
@@ -130,14 +111,7 @@ class MusicPlayer:
     
     # Plays the previous song
     def previous_song(self):
-        # Removes current song on the Listbox
-        if self.music_file:
-            try:
-                song = self.music_file
-                item = self.song_title.get(END).index(song)
-                self.song_title.delete(item)
-            except:
-                pass
+        self.remove_title()
         if self.music_file:
             self.list_song()
             next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
@@ -150,14 +124,38 @@ class MusicPlayer:
             self.song_title.insert(END, self.music_file)
             
             mixer.music.play()
-
+    
+    # Removes the title off the Listbox        
+    def remove_title(self):
+        if self.music_file:
+            try:
+                song = self.music_file
+                item = self.song_title.get(END).index(song)
+                self.song_title.delete(item)
+            except:
+                pass
+            
+    # strips off the file path and file extension on the title of song      
+    def clean_name(self):
+        if "C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\" in self.music_file:
+            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+            
+        if "C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/" in self.music_file:
+            self.music_file = self.music_file.replace("C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+    
+    
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         mixer.init()
         mixer.music.stop()
         root.destroy()
-                 
+    
+             
 # Starts the application        
 root = Tk()
 player = MusicPlayer(root)
