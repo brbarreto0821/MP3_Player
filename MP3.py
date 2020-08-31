@@ -10,18 +10,21 @@ class MusicPlayer:
     # This creates the window with the buttons to load, play, pause, and stop music
     def __init__(self, window):
         # Creates window and buttons
-        window.geometry('325x200'); window.title("Brian's Player"); window.resizable(0,0)
+        window.geometry('400x200'); window.title("Brian's Player"); window.resizable(0,0)
         Load = Button(window, text='Load', width=10, font=('Times', 10), command=self.load)
-        Play = Button(window, text='Play', width=5, font=('Times', 10), command=self.play)
-        Pause = Button(window, text='Pause', width=5, font=('Times', 10), command=self.pause)
-        Stop = Button(window, text='Stop', width=5, font=('Times', 10), command=self.stop)
-        Shuffle = Button(window, text='Shuffle', width=5, font=('Times', 10), command=self.shuffle)
+        Next = Button(window, text='⏭', width=5, font=('Times', 11), command=self.next_song)
+        Previous = Button(window, text='⏮', width=5, font=('Times', 11), command=self.previous_song)
+        Play = Button(window, text='►', width=5, font=('Times', 11), command=self.play)
+        Pause = Button(window, text='⏸', width=5, font=('Times', 11), command=self.pause)
+        Stop = Button(window, text='⏹', width=5, font=('Times', 11), command=self.stop)
+        Shuffle = Button(window, text='🔀', width=5, font=('Times', 11), command=self.shuffle)
         Volume = Scale(window, from_=0, to=1, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
         Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
         
         # Button Positions
-        Load.place(x=10, y=20); Play.place(x=120,y=80); Pause.place(x=175, y=80); Stop.place(x=60, y=80); 
-        Shuffle.place(x=230, y=80); Volume.place(x=10, y=120); Song_Title.place(x=100, y=20)
+        Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
+        Shuffle.place(x=300, y=80); Volume.place(x=10, y=120); Song_Title.place(x=100, y=20); 
+        Next.place(x=100, y=80); Previous.place(x=50, y=80)
         
         self.music_file = False
         Volume.set(1)
@@ -81,6 +84,7 @@ class MusicPlayer:
     
     # Plays a random song from the Music directory
     def shuffle(self):
+        # Removes current song on the Listbox
         if self.music_file:
             try:
                 song = self.music_file
@@ -100,10 +104,57 @@ class MusicPlayer:
             self.song_title.insert(END, self.music_file)
             
             mixer.music.play()
+    
+    # Plays the next song            
+    def next_song(self):
+        # Removes current song on the Listbox
+        if self.music_file:
+            try:
+                song = self.music_file
+                item = self.song_title.get(END).index(song)
+                self.song_title.delete(item)
+            except:
+                pass
+        if self.music_file:
+            self.list_song()
+            next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            self.music_file = self.list_of_songs[next_one + 1]
+            mixer.music.load(self.music_file)
+            
+            # strips off the file path and file extension on the title of song
+            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+            
+            mixer.music.play()
+    
+    # Plays the previous song
+    def previous_song(self):
+        # Removes current song on the Listbox
+        if self.music_file:
+            try:
+                song = self.music_file
+                item = self.song_title.get(END).index(song)
+                self.song_title.delete(item)
+            except:
+                pass
+        if self.music_file:
+            self.list_song()
+            next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            self.music_file = self.list_of_songs[next_one - 1]
+            mixer.music.load(self.music_file)
+            
+            # strips off the file path and file extension on the title of song
+            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+            
+            mixer.music.play()
 
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        mixer.init()
         mixer.music.stop()
         root.destroy()
                  
