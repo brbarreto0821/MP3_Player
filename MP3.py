@@ -13,7 +13,7 @@ class MusicPlayer:
     # This creates the window with the buttons to load, play, pause, and stop music
     def __init__(self, window):
         # Creates window and buttons
-        window.geometry('400x200'); window.title("Brian's Player"); window.resizable(0,0)
+        window.geometry('400x250'); window.title("Brian's Player"); window.resizable(0,0)
         Load = Button(window, text='Load', width=10, font=('Times', 10), command=self.load)
         Next = Button(window, text='⏭', width=5, font=('Times', 11), command=self.next_song)
         Previous = Button(window, text='⏮', width=5, font=('Times', 11), command=self.previous_song)
@@ -21,18 +21,22 @@ class MusicPlayer:
         Pause = Button(window, text='⏸', width=5, font=('Times', 11), command=self.pause)
         Stop = Button(window, text='⏹', width=5, font=('Times', 11), command=self.stop)
         Shuffle = Button(window, text='🔀', width=5, font=('Times', 11), command=self.shuffle)
-        Volume = Scale(window, from_=0, to=1, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
+        Volume = Scale(window, from_=0, to=1, showvalue=0, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
         Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
         Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
-        
+        Music_Slider = Scale(window, from_=0, to=100, showvalue=0, orient='horizontal', command=self.slider, length=360)
+        Music_Slider_Label = Label(window, text="0")
         # Button Positions
         Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
-        Shuffle.place(x=300, y=80); Volume.place(x=10, y=120); Song_Title.place(x=100, y=20); 
+        Shuffle.place(x=300, y=80); Volume.place(x=275, y=10); Song_Title.place(x=100, y=20); 
         Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2)
+        Music_Slider.place(x=10, y=150); Music_Slider_Label.place(x=190, y=200)
         
         self.music_file = False
         self.volume_slider = Volume
         self.volume_slider.set(1)
+        self.music_slider = Music_Slider
+        self.music_slider_label = Music_Slider_Label
         self.song_title = Song_Title
         self.list_of_songs = []
         self.playing_state = False
@@ -56,7 +60,10 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-    
+            
+            # Update slider
+            self.update_slider()
+            
     # This will play the music
     def play(self):
         if self.playing_state:
@@ -97,6 +104,9 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
+            
+            # Update slider to position
+            self.update_slider()
     
     # Plays the next song            
     def next_song(self):
@@ -121,7 +131,11 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-            
+     
+    # Adds a slider for the song that is currently playing    
+    def slider(self, event):
+        self.music_slider_label.config(text=f'{self.music_slider.get()} of {int(song_len)}')      
+        
     # Gets the length of the song
     def song_length(self):
         # This grabs the current time of the song
@@ -137,11 +151,14 @@ class MusicPlayer:
             # This loads song length with mutagen
             song_mutagen = MP3(song)
             # This gets the song length
-            song_length = song_mutagen.info.length
-            convert_song_length = time.strftime('%M:%S', time.gmtime(song_length))
+            global song_len
+            song_len = song_mutagen.info.length
+            # This converts the song_mutagen into time format
+            convert_song_len = time.strftime('%M:%S', time.gmtime(song_len))
             # Outputs the time to the status bar
-            self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_length}  ')
-        
+            self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_len}  ')
+            # Update slider position value to current song position
+            self.music_slider.set(current_time)
             # Updates time
             self.status_bar.after(1000, self.song_length)
         
@@ -167,7 +184,12 @@ class MusicPlayer:
             self.music_file = self.music_file.replace(".mp3", "")
             self.song_title.insert(END, self.music_file)
     
-    
+    # Updates the slider position
+    def update_slider(self):
+        slider_position = int(song_len)
+        self.music_slider.config(to=slider_position)
+        self.music_slider.set(0)
+         
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
