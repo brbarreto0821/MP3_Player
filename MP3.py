@@ -26,6 +26,7 @@ class MusicPlayer:
         Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
         Music_Slider = Scale(window, from_=0, to=100, showvalue=0, orient='horizontal', command=self.slider, length=360)
         Music_Slider_Label = Label(window, text="0")
+       
         # Button Positions
         Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
         Shuffle.place(x=300, y=80); Volume.place(x=275, y=10); Song_Title.place(x=100, y=20); 
@@ -55,7 +56,6 @@ class MusicPlayer:
         self.remove_title()
         self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
         if self.music_file:
-            mixer.init()
             mixer.music.load(self.music_file)
             self.clean_name()
             mixer.music.play()
@@ -99,7 +99,6 @@ class MusicPlayer:
         self.list_song()
         self.music_file = random.choice(self.list_of_songs)
         if self.music_file:
-            mixer.init()
             mixer.music.load(self.music_file)
             self.clean_name()
             mixer.music.play()
@@ -158,7 +157,7 @@ class MusicPlayer:
             # Outputs the time to the status bar
             self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_len}  ')
             # Update slider position value to current song position
-            self.music_slider.set(current_time)
+            self.music_slider.set(int(current_time))
             # Updates time
             self.status_bar.after(1000, self.song_length)
         
@@ -193,12 +192,12 @@ class MusicPlayer:
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
-        mixer.init()
         mixer.music.stop()
         root.destroy()
     
              
-# Starts the application        
+# Starts the application 
+mixer.init()
 root = Tk()
 player = MusicPlayer(root)
 root.protocol("WM_DELETE_WINDOW", closing_window)
