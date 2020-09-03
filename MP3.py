@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+import tkinter.ttk as ttk
 from pygame import mixer
 from mutagen.mp3 import MP3
 import os
@@ -24,24 +25,27 @@ class MusicPlayer:
         Volume = Scale(window, from_=0, to=1, showvalue=0, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
         Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
         Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
-        Music_Slider = Scale(window, from_=0, to=100, showvalue=0, orient='horizontal', command=self.slider, length=360)
-        Music_Slider_Label = Label(window, text="0")
+        Music_Slider = ttk.Scale(window, from_=0, to=100, value=0, orient='horizontal', command=self.slider, length=360)
+        #Music_Slider_Label = Label(window, text="0")
        
         # Button Positions
         Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
         Shuffle.place(x=300, y=80); Volume.place(x=275, y=10); Song_Title.place(x=100, y=20); 
         Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2)
-        Music_Slider.place(x=10, y=150); Music_Slider_Label.place(x=190, y=200)
+        Music_Slider.place(x=10, y=150); #Music_Slider_Label.place(x=190, y=200)
         
         self.music_file = False
         self.volume_slider = Volume
         self.volume_slider.set(1)
         self.music_slider = Music_Slider
-        self.music_slider_label = Music_Slider_Label
+        #self.music_slider_label = Music_Slider_Label
         self.song_title = Song_Title
         self.list_of_songs = []
         self.playing_state = False
         self.status_bar = Status_Bar
+        
+        # Fixes double skipping
+        self.stopped = False
         
     # Appends the music files to the attribute list_of_songs
     def list_song(self):
@@ -53,6 +57,7 @@ class MusicPlayer:
 
     # This method loads the music file
     def load(self):
+        self.reset_slider()
         self.remove_title()
         self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
         if self.music_file:
@@ -60,10 +65,9 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-            
             # Update slider
-            self.update_slider()
-            
+            #self.update_slider()
+
     # This will play the music
     def play(self):
         if self.playing_state:
@@ -77,9 +81,14 @@ class MusicPlayer:
             self.playing_state = True
          
     # Stops the music from playing        
-    def stop(self):
+    def stop(self):        
+        # This resets slider and status bar
+        self.status_bar.config(text="")
+        self.music_slider.config(value=0)
+        # This will stop the song
         mixer.music.stop()
         try:
+            # This will remove the title of the song off the Listbox when the stop button is pushed
             song = self.music_file
             item = self.song_title.get(END).index(song)
             self.song_title.delete(item)
@@ -88,6 +97,10 @@ class MusicPlayer:
         self.music_file = False
         self.status_bar.config(text="")
         
+        # Double skip fix
+        self.stopped = True
+        
+        
     # Volume slider added
     def vol(self, event):
         v = Scale.get(self.volume_slider)
@@ -95,20 +108,24 @@ class MusicPlayer:
     
     # Plays a random song from the Music directory
     def shuffle(self):
+        self.stopped = False
+        self.reset_slider()
         self.remove_title()
         self.list_song()
         self.music_file = random.choice(self.list_of_songs)
         if self.music_file:
             mixer.music.load(self.music_file)
             self.clean_name()
-            mixer.music.play()
+            mixer.music.play()          
             self.song_length()
             
             # Update slider to position
-            self.update_slider()
-    
+            #self.update_slider()
+        
     # Plays the next song            
     def next_song(self):
+        self.stopped = False
+        self.reset_slider()
         self.remove_title()
         if self.music_file:
             self.list_song()
@@ -118,9 +135,12 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-    
+                
     # Plays the previous song
     def previous_song(self):
+        self.stop()
+        self.stopped = False
+        self.reset_slider()
         self.remove_title()
         if self.music_file:
             self.list_song()
@@ -130,20 +150,32 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-     
+        
+        
     # Adds a slider for the song that is currently playing    
     def slider(self, event):
-        self.music_slider_label.config(text=f'{self.music_slider.get()} of {int(song_len)}')      
+        song = self.song_title.get(ACTIVE)
+        song = f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3'
+        mixer.music.load(song)
+        mixer.music.play(start=int(self.music_slider.get()))
+        
+            
         
     # Gets the length of the song
     def song_length(self):
+        # Fixes double skipping
+        if self.stopped:
+            return       
+        
         # This grabs the current time of the song
+        global current_time
         current_time = mixer.music.get_pos() / 1000
         
         # Converts the code above to time format
         convert_current_time = time.strftime('%M:%S', time.gmtime(current_time))
         
         if self.music_file:
+            #self.music_slider_label.config(text=f'{int(self.music_slider.get())} of {int(current_time)}')
             self.list_song()
             song = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
             song = self.list_of_songs[song]
@@ -154,13 +186,39 @@ class MusicPlayer:
             song_len = song_mutagen.info.length
             # This converts the song_mutagen into time format
             convert_song_len = time.strftime('%M:%S', time.gmtime(song_len))
-            # Outputs the time to the status bar
-            self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_len}  ')
+            
+            current_time += 1            
+            if int(self.music_slider.get()) == int(song_len):
+                self.status_bar.config(text=f'Time Elapsed: {convert_song_len}  of  {convert_song_len}  ')
+            
+            elif self.playing_state:
+                pass
+            
+            elif int(self.music_slider.get()) == int(current_time):
+                # The slider has not moved
+                self.update_slider()
+            
+            else:
+                # The slider has moved
+                slider_position = int(song_len)
+                self.music_slider.config(to=slider_position, value=int(self.music_slider.get()))
+                
+                # Converted time format
+                convert_current_time = time.strftime('%M:%S', time.gmtime(int(self.music_slider.get())))
+
+                # Outputs the time to the status bar
+                self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_len}  ')
+            
+                # Moves the slider by one second
+                add_time = int(self.music_slider.get()) + 1
+                self.music_slider.config(value=add_time)
+           
             # Update slider position value to current song position
-            self.music_slider.set(int(current_time))
+            #self.music_slider.config(value=int(current_time))
+            
             # Updates time
             self.status_bar.after(1000, self.song_length)
-        
+   
     # Removes the title off the Listbox        
     def remove_title(self):
         if self.music_file:
@@ -186,9 +244,14 @@ class MusicPlayer:
     # Updates the slider position
     def update_slider(self):
         slider_position = int(song_len)
-        self.music_slider.config(to=slider_position)
-        self.music_slider.set(0)
-         
+        self.music_slider.config(to=slider_position, value=int(current_time))
+    
+    # This resets slider and status bar    
+    def reset_slider(self):    
+        self.status_bar.config(text="")
+        self.music_slider.config(value=0)
+        self.play()
+        
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
