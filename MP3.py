@@ -49,16 +49,13 @@ class MusicPlayer:
         self.next = False
         self.previous = False
         self.count = 0
-        
-    # Appends the music files to the attribute list_of_songs
-    def list_song(self):
-        mypath = os.getcwd() + '/Music'
-        for path, subdir, files in os.walk(mypath):
-            for name in files:
-                if re.search('.*\.mp3', name):
-                    self.list_of_songs.append(os.path.join(path, name)) 
 
-    # This method loads the music file
+
+#----------------------------------------------------------------
+# The methods below are all the buttons and sliders for the app
+#----------------------------------------------------------------
+
+    # This loads the music file
     def load(self):
         self.remove_title()        
         self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
@@ -168,7 +165,8 @@ class MusicPlayer:
         
             
         
-    # Gets the length of the song
+    # Gets the length of the song for the slider and status bar
+    # Also gives functionality to the music slider
     def song_length(self):
         # Fixes double skipping
         if self.stopped:
@@ -186,8 +184,10 @@ class MusicPlayer:
         if self.count > 1:
             self.count = 1
             return
-            
+        
+        # For debugging purposes 
         #print(self.count)
+        
         # This grabs the current time of the song
         global current_time
         current_time = mixer.music.get_pos() / 1000
@@ -213,13 +213,31 @@ class MusicPlayer:
                 self.status_bar.config(text=f'Time Elapsed: {convert_song_len}  of  {convert_song_len}  ')
             
             elif self.playing_state:
-                pass
+                # If paused, this pauses the song again after moving the slider
+                mixer.music.pause()
+                # This mutes volume when moving the slider while paused
+                mixer.music.set_volume(0)
+                # The slider has moved
+                slider_position = int(song_len)
+                self.music_slider.config(to=slider_position, value=int(self.music_slider.get()))
+                # Converted time format
+                convert_current_time = time.strftime('%M:%S', time.gmtime(int(self.music_slider.get())))
+
+                # Outputs the time to the status bar
+                self.status_bar.config(text=f'Time Elapsed: {convert_current_time}  of  {convert_song_len}  ')
             
+                # Sets the time to the status bar when the slider is moved 
+                new_time = int(self.music_slider.get())
+                self.music_slider.config(value=new_time)
+                            
             elif int(self.music_slider.get()) == int(current_time):
                 # The slider has not moved
                 self.update_slider()
                 
             else:
+                # Sets the volume back to its original state after hitting play
+                v = Scale.get(self.volume_slider)
+                mixer.music.set_volume(v)
                 # The slider has moved
                 slider_position = int(song_len)
                 self.music_slider.config(to=slider_position, value=int(self.music_slider.get()))
@@ -239,7 +257,20 @@ class MusicPlayer:
             
             # Updates time
             self.status_bar.after(1000, self.song_length)
-   
+
+
+# -------------------------------------------------------------    
+# The methods below are used to prevent DRY for the code above
+# -------------------------------------------------------------       
+    
+    # Appends the music files to the attribute list_of_songs
+    def list_song(self):
+        mypath = os.getcwd() + '/Music'
+        for path, subdir, files in os.walk(mypath):
+            for name in files:
+                if re.search('.*\.mp3', name):
+                    self.list_of_songs.append(os.path.join(path, name)) 
+    
     # Removes the title off the Listbox        
     def remove_title(self):
         if self.music_file:
