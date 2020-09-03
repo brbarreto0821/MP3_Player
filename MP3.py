@@ -46,6 +46,8 @@ class MusicPlayer:
         
         # Fixes double skipping
         self.stopped = False
+        self.next = False
+        self.previous = False
         
     # Appends the music files to the attribute list_of_songs
     def list_song(self):
@@ -57,9 +59,10 @@ class MusicPlayer:
 
     # This method loads the music file
     def load(self):
-        self.reset_slider()
-        self.remove_title()
+        self.stopped = False
+        self.remove_title()        
         self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
+        self.reset_slider()        
         if self.music_file:
             mixer.music.load(self.music_file)
             self.clean_name()
@@ -67,7 +70,8 @@ class MusicPlayer:
             self.song_length()
             # Update slider
             #self.update_slider()
-
+        self.loaded = True
+        
     # This will play the music
     def play(self):
         if self.playing_state:
@@ -135,10 +139,11 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
+            
+        self.next = True
                 
     # Plays the previous song
     def previous_song(self):
-        self.stop()
         self.stopped = False
         self.reset_slider()
         self.remove_title()
@@ -150,7 +155,8 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-        
+            
+        self.previous = True
         
     # Adds a slider for the song that is currently playing    
     def slider(self, event):
@@ -165,8 +171,19 @@ class MusicPlayer:
     def song_length(self):
         # Fixes double skipping
         if self.stopped:
-            return       
+            return
         
+        if self.loaded:
+            return
+        
+        if self.next:
+            self.next = False
+            return
+        
+        if self.previous:
+            self.previous = False
+            return
+
         # This grabs the current time of the song
         global current_time
         current_time = mixer.music.get_pos() / 1000
