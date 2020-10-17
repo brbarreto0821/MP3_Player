@@ -27,19 +27,17 @@ class MusicPlayer:
         Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
         Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
         Music_Slider = ttk.Scale(window, from_=0, to=100, value=0, orient='horizontal', command=self.slider, length=360)
-        #Music_Slider_Label = Label(window, text="0")
        
         # Button Positions
         Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
         Shuffle.place(x=300, y=80); Volume.place(x=275, y=10); Song_Title.place(x=100, y=20); 
-        Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2)
-        Music_Slider.place(x=10, y=150); #Music_Slider_Label.place(x=190, y=200)
+        Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2);
+        Music_Slider.place(x=10, y=150); 
         
         self.music_file = False
         self.volume_slider = Volume
         self.volume_slider.set(1)
         self.music_slider = Music_Slider
-        #self.music_slider_label = Music_Slider_Label
         self.song_title = Song_Title
         self.list_of_songs = []
         self.playing_state = False
@@ -52,25 +50,79 @@ class MusicPlayer:
         self.count = 0
 
 
+# -------------------------------------------------------------    
+# The methods below are used to prevent DRY for the code below
+# -------------------------------------------------------------       
+    
+    # Appends the music files to the attribute list_of_songs
+    def list_song(self):
+        mypath = os.getcwd() + '/Music'
+        for path, subdir, files in os.walk(mypath):
+            for name in files:
+                if re.search('.*\.mp3', name):
+                    self.list_of_songs.append(os.path.join(path, name)) 
+    
+    # Removes the title off the Listbox        
+    def remove_title(self):
+        if self.music_file:
+            try:
+                song = self.music_file
+                item = self.song_title.get(END).index(song)
+                self.song_title.delete(item)
+            except:
+                pass
+            
+    # strips off the file path and file extension on the title of song      
+    def clean_name(self):
+        if "C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\" in self.music_file:
+            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+            
+        if "C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/" in self.music_file:
+            self.music_file = self.music_file.replace("C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/", "")
+            self.music_file = self.music_file.replace(".mp3", "")
+            self.song_title.insert(END, self.music_file)
+    
+    # Updates the slider position
+    def update_slider(self):
+        slider_position = int(song_len)
+        self.music_slider.config(to=slider_position, value=int(current_time))
+    
+    # This resets slider and status bar    
+    def reset_slider(self):    
+        self.status_bar.config(text="")
+        self.music_slider.config(value=0)
+        self.play()
+        
+        
 #----------------------------------------------------------------
 # The methods below are all the buttons and sliders for the app
 #----------------------------------------------------------------
 
     # This loads the music file
     def load(self):
-        self.remove_title()        
-        self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
-        self.reset_slider()        
-        if self.music_file:
+        if not self.music_file: 
+            self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))  
             mixer.music.load(self.music_file)
             self.clean_name()
-            mixer.music.play()
-            self.song_length()
-            # Update slider
-            #self.update_slider()
+            mixer.music.play()      
         
-        # Double skip fix
-        self.count += 1
+        else:
+            new_music_file = False
+            new_music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))
+            if new_music_file:
+                self.remove_title()
+                self.reset_slider()
+                self.music_file = new_music_file
+                mixer.music.load(self.music_file)
+                self.clean_name()
+                mixer.music.play()
+            else:
+                pass
+        
+        self.song_length() 
+        self.count += 1      # Double skip fix
         
     # This will play the music
     def play(self):
@@ -139,7 +191,8 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-            
+        
+        # double skip fix
         self.next = True
                 
     # Plays the previous song
@@ -154,7 +207,8 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-            
+         
+        # double skip fix
         self.previous = True
         
     # Adds a slider for the song that is currently playing    
@@ -163,8 +217,6 @@ class MusicPlayer:
         song = f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3'
         mixer.music.load(song)
         mixer.music.play(start=int(self.music_slider.get()))
-        
-            
         
     # Gets the length of the song for the slider and status bar
     # Also gives functionality to the music slider
@@ -185,10 +237,7 @@ class MusicPlayer:
         if self.count > 1:
             self.count = 1
             return
-        
-        # For debugging purposes 
-        #print(self.count)
-        
+            
         # This grabs the current time of the song
         global current_time
         current_time = mixer.music.get_pos() / 1000
@@ -197,7 +246,6 @@ class MusicPlayer:
         convert_current_time = time.strftime('%M:%S', time.gmtime(current_time))
         
         if self.music_file:
-            #self.music_slider_label.config(text=f'{int(self.music_slider.get())} of {int(current_time)}')
             self.list_song()
             song = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
             song = self.list_of_songs[song]
@@ -209,10 +257,11 @@ class MusicPlayer:
             # This converts the song_mutagen into time format
             convert_song_len = time.strftime('%M:%S', time.gmtime(song_len))
             
-                
+            # updates the status bar to show that the song is done   
             if int(self.music_slider.get()) == int(song_len):
                 self.status_bar.config(text=f'Time Elapsed: {convert_song_len}  of  {convert_song_len}  ')
             
+            # updates the status bar when moving the slider
             elif self.playing_state:
                 # If paused, this pauses the song again after moving the slider
                 mixer.music.pause()
@@ -253,58 +302,10 @@ class MusicPlayer:
                 add_time = int(self.music_slider.get()) + 1
                 self.music_slider.config(value=add_time)
                 
-            # Update slider position value to current song position
-            #self.music_slider.config(value=int(current_time))
-            
             # Updates time
             self.status_bar.after(1000, self.song_length)
-
-
-# -------------------------------------------------------------    
-# The methods below are used to prevent DRY for the code above
-# -------------------------------------------------------------       
-    
-    # Appends the music files to the attribute list_of_songs
-    def list_song(self):
-        mypath = os.getcwd() + '/Music'
-        for path, subdir, files in os.walk(mypath):
-            for name in files:
-                if re.search('.*\.mp3', name):
-                    self.list_of_songs.append(os.path.join(path, name)) 
-    
-    # Removes the title off the Listbox        
-    def remove_title(self):
-        if self.music_file:
-            try:
-                song = self.music_file
-                item = self.song_title.get(END).index(song)
-                self.song_title.delete(item)
-            except:
-                pass
-            
-    # strips off the file path and file extension on the title of song      
-    def clean_name(self):
-        if "C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\" in self.music_file:
-            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
-            
-        if "C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/" in self.music_file:
-            self.music_file = self.music_file.replace("C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
-    
-    # Updates the slider position
-    def update_slider(self):
-        slider_position = int(song_len)
-        self.music_slider.config(to=slider_position, value=int(current_time))
-    
-    # This resets slider and status bar    
-    def reset_slider(self):    
-        self.status_bar.config(text="")
-        self.music_slider.config(value=0)
-        self.play()
-        
+ 
+       
 # Window prompt that asks if you want to quit                    
 def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
