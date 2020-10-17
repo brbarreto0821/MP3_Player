@@ -14,6 +14,7 @@ This was a fun python project that I wanted to create on my own.
 ## Technologies
 Project is created with:
 * Python version: 3.7.6
+* tkinter version: 8.6
 * pygame version: 1.9.6
 * mutagen version: 1.45.1
 
