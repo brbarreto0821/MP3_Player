@@ -25,6 +25,7 @@ Project is created with:
 * Play, pause, and stop .mp3 files with their respective buttons
 * Use the previous and next buttons to play the previous or next file
 * Shuffle button to play a random .mp3 file 
+
 ## Setup
 To run this project, you must have Python 3(I used Python 3.7.6):
 
