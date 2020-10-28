@@ -56,7 +56,7 @@ class MusicPlayer:
     
     # Appends the music files to the attribute list_of_songs
     def list_song(self):
-        mypath = os.getcwd() + '/Music'
+        mypath = filename + '/Music'   # filename is global. It is on line #319
         for path, subdir, files in os.walk(mypath):
             for name in files:
                 if re.search('.*\.mp3', name):
@@ -74,15 +74,13 @@ class MusicPlayer:
             
     # strips off the file path and file extension on the title of song      
     def clean_name(self):
-        if "C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\" in self.music_file:
-            self.music_file = self.music_file.replace("C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\", "")
+        if "MP3_Player/Music" in self.music_file:
+            self.music_file = self.music_file.replace("/", "\\")
+            self.music_file = self.music_file.replace(filename + "\\Music", "")
+            self.music_file = self.music_file.replace("\\", "")
+            self.music_file = self.music_file.replace("/", "")
             self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
-            
-        if "C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/" in self.music_file:
-            self.music_file = self.music_file.replace("C:/Users/bbarr/Desktop/Computer_Exercises/Python/MP3_Player/Music/", "")
-            self.music_file = self.music_file.replace(".mp3", "")
-            self.song_title.insert(END, self.music_file)
+            self.song_title.insert(END, self.music_file)           
     
     # Updates the slider position
     def update_slider(self):
@@ -103,10 +101,13 @@ class MusicPlayer:
     # This loads the music file
     def load(self):
         if not self.music_file: 
-            self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), ))  
-            mixer.music.load(self.music_file)
-            self.clean_name()
-            mixer.music.play()      
+            self.music_file = filedialog.askopenfilename(initialdir='Music/', filetypes=(("mp3 Files", "*.mp3"), )) 
+            if self.music_file == "":
+                pass
+            else:
+                mixer.music.load(self.music_file)
+                self.clean_name()
+                mixer.music.play()      
         
         else:
             new_music_file = False
@@ -120,7 +121,7 @@ class MusicPlayer:
                 mixer.music.play()
             else:
                 pass
-        
+
         self.song_length() 
         self.count += 1      # Double skip fix
         
@@ -185,7 +186,7 @@ class MusicPlayer:
         self.remove_title()
         if self.music_file:
             self.list_song()
-            next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            next_one = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one + 1]
             mixer.music.load(self.music_file)
             self.clean_name()
@@ -201,7 +202,7 @@ class MusicPlayer:
         self.remove_title()
         if self.music_file:
             self.list_song()
-            next_one = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            next_one = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one - 1]
             mixer.music.load(self.music_file)
             self.clean_name()
@@ -214,7 +215,7 @@ class MusicPlayer:
     # Adds a slider for the song that is currently playing    
     def slider(self, event):
         song = self.song_title.get(ACTIVE)
-        song = f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3'
+        song = f'{filename}/Music\\{self.music_file}.mp3'
         mixer.music.load(song)
         mixer.music.play(start=int(self.music_slider.get()))
         
@@ -247,7 +248,7 @@ class MusicPlayer:
         
         if self.music_file:
             self.list_song()
-            song = self.list_of_songs.index(f'C:\\Users\\bbarr\\Desktop\\Computer_Exercises\\Python\\MP3_Player/Music\\{self.music_file}.mp3')
+            song = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
             song = self.list_of_songs[song]
             # This loads song length with mutagen
             song_mutagen = MP3(song)
@@ -312,8 +313,18 @@ def closing_window():
         mixer.music.stop()
         root.destroy()
     
-             
-# Starts the application 
+# Changes working directory to where the music is on current computer
+os.chdir("C:\\Users")
+def files():
+    global filename
+    for path, subdir, files in os.walk("C:\\Users"):
+	    for dir in subdir:
+		    if dir == "MP3_Player":
+			    filename = os.path.join(path, dir)
+    return filename
+
+# Starts the application
+files() 
 mixer.init()
 root = Tk()
 player = MusicPlayer(root)
