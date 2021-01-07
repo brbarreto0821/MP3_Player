@@ -192,7 +192,8 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-        
+        else:
+            return
         # double skip fix
         self.next = True
                 
@@ -208,7 +209,8 @@ class MusicPlayer:
             self.clean_name()
             mixer.music.play()
             self.song_length()
-         
+        else:
+            return
         # double skip fix
         self.previous = True
         
