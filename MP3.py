@@ -56,12 +56,12 @@ class MusicPlayer:
     
     # Appends the music files to the attribute list_of_songs
     def list_song(self):
-        mypath = filename + '/Music'   # filename is global. It is on line #319
+        mypath = directory + '/Music'   # directory is global. It is on line #319
         for path, subdir, files in os.walk(mypath):
             for name in files:
                 if re.search('.*\.mp3', name):
                     self.list_of_songs.append(os.path.join(path, name)) 
-    
+                    
     # Removes the title off the Listbox        
     def remove_title(self):
         if self.music_file:
@@ -76,7 +76,7 @@ class MusicPlayer:
     def clean_name(self):
         if "MP3_Player/Music" in self.music_file:
             self.music_file = self.music_file.replace("/", "\\")
-            self.music_file = self.music_file.replace(filename + "\\Music", "")
+            self.music_file = self.music_file.replace(directory + '\\Music', "")
             self.music_file = self.music_file.replace("\\", "")
             self.music_file = self.music_file.replace("/", "")
             self.music_file = self.music_file.replace(".mp3", "")
@@ -186,7 +186,7 @@ class MusicPlayer:
         self.remove_title()
         if self.music_file:
             self.list_song()
-            next_one = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
+            next_one = self.list_of_songs.index(f'{directory}/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one + 1]
             mixer.music.load(self.music_file)
             self.clean_name()
@@ -202,7 +202,7 @@ class MusicPlayer:
         self.remove_title()
         if self.music_file:
             self.list_song()
-            next_one = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
+            next_one = self.list_of_songs.index(f'{directory}/Music\\{self.music_file}.mp3')
             self.music_file = self.list_of_songs[next_one - 1]
             mixer.music.load(self.music_file)
             self.clean_name()
@@ -215,7 +215,7 @@ class MusicPlayer:
     # Adds a slider for the song that is currently playing    
     def slider(self, event):
         song = self.song_title.get(ACTIVE)
-        song = f'{filename}/Music\\{self.music_file}.mp3'
+        song = f'{directory}/Music\\{self.music_file}.mp3'
         mixer.music.load(song)
         mixer.music.play(start=int(self.music_slider.get()))
         
@@ -248,7 +248,7 @@ class MusicPlayer:
         
         if self.music_file:
             self.list_song()
-            song = self.list_of_songs.index(f'{filename}/Music\\{self.music_file}.mp3')
+            song = self.list_of_songs.index(f'{directory}/Music\\{self.music_file}.mp3')
             song = self.list_of_songs[song]
             # This loads song length with mutagen
             song_mutagen = MP3(song)
@@ -312,21 +312,19 @@ def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         mixer.music.stop()
         root.destroy()
-    
-# Changes working directory to where the music is on current computer
-os.chdir("C:\\Users")
+# Ask for Music directory that contains music files and then saves it in Music.txt file
 def files():
-    global filename
-    for path, subdir, files in os.walk("C:\\Users"):
-	    for dir in subdir:
-		    if dir == "MP3_Player":
-			    filename = os.path.join(path, dir)
-    return filename
-
+    os.chdir(os.path.dirname(__file__))
+    global directory
+    directory = list(os.getcwd())
+    directory[0] = "C"
+    directory = "".join(directory)
+    return directory
+    
 # Starts the application
-files() 
 mixer.init()
 root = Tk()
 player = MusicPlayer(root)
+files()
 root.protocol("WM_DELETE_WINDOW", closing_window)
 root.mainloop()
