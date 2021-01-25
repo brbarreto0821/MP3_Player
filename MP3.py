@@ -16,7 +16,7 @@ class MusicPlayer:
     def __init__(self, window):
         # Creates window and buttons
         window.geometry('400x250'); window.title("Brian's Player"); window.resizable(0,0)
-        Load = Button(window, text='Load', width=10, font=('Times', 10), command=self.load)
+        Load = Button(window, text='Load', width=5, font=('Times', 10), command=self.load)
         Next = Button(window, text='⏭', width=5, font=('Times', 11), command=self.next_song)
         Previous = Button(window, text='⏮', width=5, font=('Times', 11), command=self.previous_song)
         Play = Button(window, text='►', width=5, font=('Times', 11), command=self.play)
@@ -24,16 +24,17 @@ class MusicPlayer:
         Stop = Button(window, text='⏹', width=5, font=('Times', 11), command=self.stop)
         Shuffle = Button(window, text='🔀', width=5, font=('Times', 11), command=self.shuffle)
         Volume = Scale(window, from_=0, to=1, showvalue=0, label='Volume', orient='horizontal', resolution=.01, command=self.vol)
-        Song_Title = Listbox(window, bg="black", fg="white", width=25, height=1)
+        Song_Title = Listbox(window, bg="black", fg="lightblue", width=40, height=1)
         Status_Bar = Label(window, text='', bd=1, relief=GROOVE, anchor=E)
         Music_Slider = ttk.Scale(window, from_=0, to=100, value=0, orient='horizontal', command=self.slider, length=360)
        
         # Button Positions
-        Load.place(x=10, y=20); Play.place(x=200,y=80); Pause.place(x=250, y=80); Stop.place(x=150, y=80); 
-        Shuffle.place(x=300, y=80); Volume.place(x=275, y=10); Song_Title.place(x=100, y=20); 
-        Next.place(x=100, y=80); Previous.place(x=50, y=80); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2);
-        Music_Slider.place(x=10, y=150); 
+        Load.place(x=10, y=20); Play.place(x=200,y=130); Pause.place(x=250, y=130); Stop.place(x=150, y=130); 
+        Shuffle.place(x=300, y=130); Volume.place(x=150, y=170); Song_Title.place(x=70, y=20); 
+        Next.place(x=100, y=130); Previous.place(x=50, y=130); Status_Bar.pack(fill=X, side=BOTTOM, ipady=2);
+        Music_Slider.place(x=10, y=80); 
         
+        # Attributes
         self.music_file = False
         self.volume_slider = Volume
         self.volume_slider.set(1)
@@ -314,7 +315,7 @@ def closing_window():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         mixer.music.stop()
         root.destroy()
-# Ask for Music directory that contains music files and then saves it in Music.txt file
+# Locates the Music directory to access it when using the Load button
 def files():
     os.chdir(os.path.dirname(__file__))
     global directory
