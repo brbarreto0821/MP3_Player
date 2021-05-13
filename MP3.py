@@ -37,7 +37,6 @@ class MusicPlayer:
         # Attributes
         self.music_file = False
         self.volume_slider = Volume
-        self.volume_slider.set(1)
         self.music_slider = Music_Slider
         self.song_title = Song_Title
         self.list_of_songs = []
@@ -50,6 +49,8 @@ class MusicPlayer:
         self.previous = False
         self.count = 0
 
+        # Sets volume slider to max
+        self.volume_slider.set(1)
 
 # -------------------------------------------------------------    
 # The methods below are used to prevent DRY for the code below
@@ -317,7 +318,7 @@ def closing_window():
         root.destroy()
 # Locates the Music directory to access it when using the Load button
 def files():
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     global directory
     directory = list(os.getcwd())
     directory[0] = "C"
